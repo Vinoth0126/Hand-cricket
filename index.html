@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🔥 Super Finger Cricket Mania 🏏</title>
+    <title>🔥 Finger Cricket Room Code Game 🏏</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -34,7 +34,6 @@
         }
         .btn:hover {
             transform: scale(1.08);
-            background: linear-gradient(45deg, #ff4b2b, #ff416c);
         }
         .game-box {
             margin-top: 20px;
@@ -73,25 +72,39 @@
 </head>
 <body>
 
-    <h1>🏏 🔥 பிங்கர் கிரிக்கெட் மேனியா ⚡</h1>
+    <h1>🏏 🔥 பிங்கர் கிரிக்கெட் ரூம் மேனியா ⚡</h1>
     
     <!-- 1. பிளேயர் எண்ணிக்கை தேர்வு -->
     <div id="setup-screen" class="game-box">
-        <h3>👥 எத்தனை வீரர்கள்?</h3>
-        <button class="btn" onclick="selectPlayers(2)">2 பிளேயர்ஸ் ⚔️</button>
-        <button class="btn" onclick="selectPlayers(3)">3 பிளேயர்ஸ் 🏆</button>
-        <button class="btn" onclick="selectPlayers(4)">4 பிளேயர்ஸ் ⚡</button>
-        <button class="btn" onclick="selectPlayers(5)">5 பிளேயர்ஸ் 🔥</button>
+        <h3>👥 எத்தனை வீரர்கள் விளையாடப் போகிறீர்கள்?</h3>
+        <button class="btn" onclick="showRoomScreen(2)">2 பிளேயர்ஸ் ⚔️</button>
+        <button class="btn" onclick="showRoomScreen(3)">3 பிளேயர்ஸ் 🏆</button>
+        <button class="btn" onclick="showRoomScreen(4)">4 பிளேயர்ஸ் ⚡</button>
+        <button class="btn" onclick="showRoomScreen(5)">5 பிளேயர்ஸ் 🔥</button>
     </div>
 
-    <!-- பெயர்களை உள்ளிடும் ஸ்கிரீன் -->
-    <div id="name-screen" class="game-box" style="display:none;">
-        <h3>✍️ வீரர்களின் பெயர்கள்:</h3>
-        <div id="name-inputs"></div>
-        <button class="btn" onclick="startTheGame()" style="background: linear-gradient(45deg, #00b09b, #96c93d);">கேமைத் தொடங்கு 🚀</button>
+    <!-- 2. ரூம் கிரியேட் / ஜாயின் ஸ்கிரீன் -->
+    <div id="room-screen" class="game-box" style="display:none;">
+        <h2 style="color: #ffcc00;">🏠 ரூம் அமைப்பு</h2>
+        <input type="text" id="player-name" placeholder="உங்கள் பெயர்..." required><br>
+        <button class="btn" onclick="createRoom()" style="background: linear-gradient(45deg, #00b09b, #96c93d);">புதிய ரூம் உருவாக்கு 🎲</button>
+        
+        <p style="margin: 15px 0;">(அல்லது)</p>
+        
+        <input type="text" id="join-room-code" placeholder="ரூம் கோடு (உதா: 4821)"><br>
+        <button class="btn" onclick="joinRoom()">ரூமில் இணை 🚀</button>
+        <p id="error-msg" style="color: #ff5252;"></p>
     </div>
 
-    <!-- 2. கேம் ஸ்கிரீன் -->
+    <!-- 3. லாபி ஸ்கிரீன் -->
+    <div id="lobby-screen" class="game-box" style="display:none;">
+        <h2>⏳ ரூம் வெற்றிகரமாக உருவாக்கப்பட்டது!</h2>
+        <h3 id="display-room-code" style="color: #00ffcc; font-size: 26px;"></h3>
+        <p>இந்த ரூம் கோடை உங்கள் நண்பர்களுக்கு பகிரவும்!</p>
+        <button class="btn" onclick="startTheGame()" style="background: linear-gradient(45deg, #00b09b, #96c93d);">கேமைத் தொடங்கு 🎮</button>
+    </div>
+
+    <!-- 4. கேம் ஸ்கிரீன் -->
     <div id="game-screen" class="game-box" style="display:none;">
         <h2 id="current-player-turn" style="color: #ffcc00;">Player Turn</h2>
         <div id="timer">⏱️ 5s</div>
@@ -106,7 +119,7 @@
         </div>
     </div>
 
-    <!-- 3. ரிசல்ட் ஸ்கிரீன் -->
+    <!-- 5. ரிசல்ட் ஸ்கிரீன் -->
     <div id="result-screen" class="game-box" style="display:none;">
         <h2>🎉 ரவுண்ட் ரிசல்ட்</h2>
         <div id="special-effect" style="font-size: 26px; margin: 12px 0;"></div>
@@ -118,6 +131,8 @@
 
     <script>
         let numPlayers = 2;
+        let roomCode = "";
+        let playerName = "";
         let playerNames = [];
         let scores = [];
         let moves = [];
@@ -125,27 +140,52 @@
         let timeLeft = 5;
         let timerInterval;
 
-        function selectPlayers(count) {
+        function showRoomScreen(count) {
             numPlayers = count;
             document.getElementById('setup-screen').style.display = 'none';
-            document.getElementById('name-screen').style.display = 'block';
-            
-            let html = "";
-            for (let i = 0; i < numPlayers; i++) {
-                html += `<input type="text" id="p-name-${i}" placeholder="Player ${i+1} பெயர்" value="Player ${i+1}"><br>`;
+            document.getElementById('room-screen').style.display = 'block';
+        }
+
+        function createRoom() {
+            playerName = document.getElementById('player-name').value.trim();
+            if (!playerName) {
+                alert("தயவுசெய்து உங்கள் பெயரை உள்ளிடவும்!");
+                return;
             }
-            document.getElementById('name-inputs').innerHTML = html;
+            // 4 இலக்க ரேண்டம் ரூம் கோடு ஜெனரேட் ஆகும்
+            roomCode = Math.floor(1000 + Math.random() * 9000).toString();
+            
+            document.getElementById('room-screen').style.display = 'none';
+            document.getElementById('lobby-screen').style.display = 'block';
+            document.getElementById('display-room-code').innerText = `ரூம் கோடு: ${roomCode}`;
+            
+            playerNames = [playerName];
+        }
+
+        function joinRoom() {
+            playerName = document.getElementById('player-name').value.trim();
+            let enteredCode = document.getElementById('join-room-code').value.trim();
+            
+            if (!playerName || !enteredCode) {
+                document.getElementById('error-msg').innerText = "பெயரும் ரூம் கோடும் கட்டாயம்!";
+                return;
+            }
+            
+            roomCode = enteredCode;
+            playerNames = ["Player 1", playerName]; // பாஸ் & பிளே ஸ்டைல்
+            startTheGame();
         }
 
         function startTheGame() {
-            playerNames = [];
-            scores = new Array(numPlayers).fill(0);
-            for (let i = 0; i < numPlayers; i++) {
-                let nameField = document.getElementById(`p-name-${i}`);
-                let name = nameField ? nameField.value.trim() : "";
-                playerNames.push(name !== "" ? name : `Player ${i+1}`);
+            if(playerNames.length < numPlayers) {
+                // ஒருவேளை சிங்கிள் பிளேயர் கிரியேட் பண்ணியிருந்தா மீதி பிளேயர் பெயர்களை ஆட்டோவா செட் பண்ணிடலாம்
+                for(let i = playerNames.length; i < numPlayers; i++) {
+                    playerNames.push(`Player ${i+1}`);
+                }
             }
-            document.getElementById('name-screen').style.display = 'none';
+            scores = new Array(numPlayers).fill(0);
+            document.getElementById('room-screen').style.display = 'none';
+            document.getElementById('lobby-screen').style.display = 'none';
             document.getElementById('game-screen').style.display = 'block';
             currentPlayerIndex = 0;
             startTurn();
