@@ -75,7 +75,7 @@
 
     <h1>🏏 🔥 பிங்கர் கிரிக்கெட் மேனியா ⚡</h1>
     
-    <!-- 1. பிளேயர் எண்ணிக்கை தேர்வு மற்றும் பெயர்கள் -->
+    <!-- 1. பிளேயர் எண்ணிக்கை தேர்வு -->
     <div id="setup-screen" class="game-box">
         <h3>👥 எத்தனை வீரர்கள்?</h3>
         <button class="btn" onclick="selectPlayers(2)">2 பிளேயர்ஸ் ⚔️</button>
@@ -91,7 +91,7 @@
         <button class="btn" onclick="startTheGame()" style="background: linear-gradient(45deg, #00b09b, #96c93d);">கேமைத் தொடங்கு 🚀</button>
     </div>
 
-    <!-- 2. கேம் ஸ்கிரீன் (சுழற்சி முறை) -->
+    <!-- 2. கேம் ஸ்கிரீன் -->
     <div id="game-screen" class="game-box" style="display:none;">
         <h2 id="current-player-turn" style="color: #ffcc00;">Player Turn</h2>
         <div id="timer">⏱️ 5s</div>
@@ -100,9 +100,9 @@
             <button class="btn" onclick="makeMove(1)">1 ☝️</button>
             <button class="btn" onclick="makeMove(2)">2 ✌️</button>
             <button class="btn" onclick="makeMove(3)">3 🤟</button>
-            <button class="btn" onclick="makeMove(4)">4 🚀 4(Boundary)</button>
+            <button class="btn" onclick="makeMove(4)">4 🚀 பவுண்டரி</button>
             <button class="btn" onclick="makeMove(5)">5 🖐️</button>
-            <button class="btn" onclick="makeMove(6)">6 🔥 6(Maximum)</button>
+            <button class="btn" onclick="makeMove(6)">6 🔥 சிக்சர்</button>
         </div>
     </div>
 
@@ -141,8 +141,9 @@
             playerNames = [];
             scores = new Array(numPlayers).fill(0);
             for (let i = 0; i < numPlayers; i++) {
-                let name = document.getElementById(`p-name-${i}`).value.trim();
-                playerNames.push(name || `Player ${i+1}`);
+                let nameField = document.getElementById(`p-name-${i}`);
+                let name = nameField ? nameField.value.trim() : "";
+                playerNames.push(name !== "" ? name : `Player ${i+1}`);
             }
             document.getElementById('name-screen').style.display = 'none';
             document.getElementById('game-screen').style.display = 'block';
@@ -152,16 +153,24 @@
 
         function startTurn() {
             timeLeft = 5;
-            document.getElementById('current-player-turn').innerText = `🎮 ${playerNames[currentPlayerIndex]} இன் முறை!`;
-            document.getElementById('timer').innerText = `⏱️ ${timeLeft}s`;
+            let turnText = document.getElementById('current-player-turn');
+            if (turnText) {
+                turnText.innerText = `🎮 ${playerNames[currentPlayerIndex]} இன் முறை!`;
+            }
+            let timerText = document.getElementById('timer');
+            if (timerText) {
+                timerText.innerText = `⏱️ ${timeLeft}s`;
+            }
             
             clearInterval(timerInterval);
             timerInterval = setInterval(() => {
                 timeLeft--;
-                document.getElementById('timer').innerText = `⏱️ ${timeLeft}s`;
+                if (timerText) {
+                    timerText.innerText = `⏱️ ${timeLeft}s`;
+                }
                 if (timeLeft <= 0) {
                     clearInterval(timerInterval);
-                    makeMove(0); // Timeout - 0 run
+                    makeMove(0);
                 }
             }, 1000);
         }
